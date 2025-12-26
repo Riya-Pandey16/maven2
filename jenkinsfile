@@ -7,7 +7,7 @@ pipeline
         {
            steps
            {
-              git 'https://github.com/IntelliqDevops/maven.git'
+              git 'https://github.com/Riya-Pandey16/maven2.git'
            }
         }
         stage('Build')
@@ -21,14 +21,14 @@ pipeline
        {
            steps
            {
-             deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: '7e2d2585-fad1-4cdc-885f-c06240fcf984', path: '', url: 'http://35.172.217.171:8080')], contextPath: 'testapp', war: '**/*.war'
+             deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: '26da38b6-5bec-47a6-8fdb-69b2e1209567', path: '', url: 'http://35.172.217.171:8080')], contextPath: 'testapp', war: '**/*.war'
            }
        }
        stage('Testing')
        {
            steps
            {
-               git 'https://github.com/IntelliqDevops/FunctionalTesting.git'
+               git 'https://github.com/Riya-Pandey16/FunctionalTesting.git'
                sh '''java -jar /var/lib/jenkins/workspace/DeclarativePipeline1/testing.jar'''
            }
        }
@@ -36,7 +36,7 @@ pipeline
        {
            steps
            {
-              deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: '7e2d2585-fad1-4cdc-885f-c06240fcf984', path: '', url: 'http://3.239.72.121:8080')], contextPath: 'prodapp', war: '**/*.war'
+              deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: '26da38b6-5bec-47a6-8fdb-69b2e1209567', path: '', url: 'http://3.239.72.121:8080')], contextPath: 'prodapp', war: '**/*.war'
            }
        }
     }
