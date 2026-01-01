@@ -1,43 +1,73 @@
-pipeline
-{
-    agent any
-    stages
-    {
-        stage('Download')
-        {
-           steps
-           {
-              git 'https://github.com/Riya-Pandey16/maven2.git'
-           }
-        }
-        stage('Build')
-        {
-            steps
-            {
-                sh '''mvn package'''
+@Library('my-shared-lib') _
+
+pipeline {
+    agent none
+
+    environment {
+        QA_SERVER   = "ubuntu@172.31.77.87"
+        PROD_SERVER = "ubuntu@172.31.71.63"
+    }
+
+    triggers {
+        githubPush()
+    }
+
+    stages {
+
+        stage('Checkout') {
+            agent { label 'myslave' }
+            steps {
+                checkout scm
             }
         }
-       stage('Deployment')
-       {
-           steps
-           {
-             deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: '26da38b6-5bec-47a6-8fdb-69b2e1209567', path: '', url: 'http://34.226.234.134:8080')], contextPath: 'testapp', war: '**/*.war'
-           }
-       }
-       stage('Testing')
-       {
-           steps
-           {
-               git 'https://github.com/Riya-Pandey16/FunctionalTesting.git'
-               sh '''java -jar /var/lib/jenkins/workspace/DeclarativePipeline1/testing.jar'''
-           }
-       }
-       stage('Delivery')
-       {
-           steps
-           {
-              deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: '26da38b6-5bec-47a6-8fdb-69b2e1209567', path: '', url: 'http://44.213.62.118:8080')], contextPath: 'prodapp', war: '**/*.war'
-           }
-       }
+
+        stage('Build & Unit Test') {
+            agent { label 'myslave' }
+            steps {
+                buildApp()
+            }
+        }
+
+        stage('Parallel QA Activities') {
+            parallel {
+
+                stage('Deploy to QA') {
+                    agent { label 'myslave' }
+                    steps {
+                        deployTomcat(QA_SERVER, "target/*.war")
+                    }
+                }
+
+                stage('Run Selenium Tests') {
+                    agent { label 'myslave' }
+                    steps {
+                        git url: 'https://github.com/Riya-Pandey16/FunctionalTesting.git'
+                        runSelenium()
+                    }
+                }
+            }
+        }
+
+        stage('Manual Approval') {
+            steps {
+                input message: "Deploy to Production?"
+            }
+        }
+
+        stage('Deploy to Prod') {
+            agent { label 'jenkins-agent' }
+            steps {
+                deployTomcat(PROD_SERVER, "target/*.war")
+            }
+        }
+    }
+
+    post {
+        success {
+            sendMail("SUCCESS")
+        }
+        failure {
+            sendMail("FAILED")
+        }
     }
 }
