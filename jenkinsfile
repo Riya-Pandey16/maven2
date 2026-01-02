@@ -33,10 +33,13 @@ pipeline {
 
                 stage('Deploy to QA') {
                     agent { label 'myslave' }
-                    steps {
-                        deployTomcat(QA_SERVER, "webapp/target/*.war")
-
-                    }
+                   steps {
+                deployTomcat(
+                    warFilePath: 'webapp/target/webapp.war',
+                    pemKeyPath: '/home/ubuntu/cicd.pem',
+                    remoteHost: '172.31.77.87'
+                )
+            }
                 }
 
                 stage('Run Selenium Tests') {
