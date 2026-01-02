@@ -3,15 +3,9 @@
 pipeline {
     agent none
 
-    tools {
-        maven 'maven-3'
-        jdk 'java-17'
-    }
-
     environment {
-       QA_SERVER   = "ubuntu@172.31.77.87"
+        QA_SERVER   = "ubuntu@172.31.77.87"
         PROD_SERVER = "ubuntu@172.31.71.63"
-
     }
 
     triggers {
@@ -38,12 +32,11 @@ pipeline {
             parallel {
 
                 stage('Deploy to QA') {
-                    agent { label 'jenkins-agent' }
+                    agent { label 'myslave' }
                     steps {
-                        deployTomcat("ubuntu@172.31.77.87", "testapp.war")
-    }
-}
-
+                        deployTomcat(QA_SERVER, "target/*.war")
+                    }
+                }
 
                 stage('Run Selenium Tests') {
                     agent { label 'myslave' }
@@ -62,7 +55,7 @@ pipeline {
         }
 
         stage('Deploy to Prod') {
-            agent { label 'myslave' }
+            agent { label 'jenkins-agent' }
             steps {
                 deployTomcat(PROD_SERVER, "target/*.war")
             }
