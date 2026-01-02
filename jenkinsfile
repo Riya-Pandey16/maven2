@@ -3,11 +3,6 @@
 pipeline {
     agent none
 
-    environment {
-        QA_SERVER   = "ubuntu@172.31.77.87"
-        PROD_SERVER = "ubuntu@172.31.71.63"
-    }
-
     triggers {
         githubPush()
     }
@@ -33,13 +28,13 @@ pipeline {
 
                 stage('Deploy to QA') {
                     agent { label 'myslave' }
-                   steps {
-                deployTomcat(
-                    warFilePath: 'webapp/target/webapp.war',
-                    pemKeyPath: '/home/ubuntu/cicd.pem',
-                    remoteHost: '172.31.77.87'
-                )
-            }
+                    steps {
+                        deployTomcat(
+                            'webapp/target/webapp.war',
+                            '/home/ubuntu/cicd.pem',
+                            '172.31.77.87'
+                        )
+                    }
                 }
 
                 stage('Run Selenium Tests') {
@@ -53,16 +48,20 @@ pipeline {
         }
 
         stage('Manual Approval') {
+            agent any
             steps {
                 input message: "Deploy to Production?"
             }
         }
 
         stage('Deploy to Prod') {
-            agent { label 'jenkins-agent' }
+            agent { label 'myslave' }
             steps {
-               deployTomcat(PROD_SERVER, "webapp/target/*.war")
-
+                deployTomcat(
+                    'webapp/target/webapp.war',
+                    '/home/ubuntu/cicd.pem',
+                    '172.31.71.63'
+                )
             }
         }
     }
@@ -76,4 +75,3 @@ pipeline {
         }
     }
 }
-
