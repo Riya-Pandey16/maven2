@@ -25,14 +25,13 @@ pipeline
                 }
             }
         }
-       stage('Deployment') {
-    agent { label 'myslave' }   // 👈 runs on agent
+      stage('Deployment') {
     parallel {
 
         stage('Deploy_to_Staging') {
             steps {
-                echo "Deploying to STAGING environment"
                 script {
+                    echo "Deploying to STAGING environment"
                     cicd.deployTomcat("sharedlibrary1", "172.31.77.87", "stageapp")
                 }
             }
@@ -40,8 +39,8 @@ pipeline
 
         stage('Deploy_to_Master') {
             steps {
-                echo "Deploying to MASTER environment"
                 script {
+                    echo "Deploying to MASTER environment"
                     cicd.deployTomcat("sharedlibrary1", "172.31.77.87", "testapp")
                 }
             }
