@@ -25,16 +25,29 @@ pipeline
                 }
             }
         }
-        stage('Deployment_master')
-        {
-            steps
-            {
-                script
-                {
-                    cicd.deployTomcat("sharedlibrary1","172.31.77.87","testapp")
+       stage('Deployment') {
+    parallel {
+
+        stage('Deploy_to_Staging') {
+            steps {
+                script {
+                    echo "Deploying to STAGING environment"
+                    cicd.deployTomcat("sharedlibrary1", "172.31.55.22", "stageapp")
                 }
             }
         }
+
+        stage('Deploy_to_Master') {
+            steps {
+                script {
+                    echo "Deploying to MASTER environment"
+                    cicd.deployTomcat("sharedlibrary1", "172.31.77.87", "testapp")
+                }
+            }
+        }
+    }
+}
+
         stage('Testing_master')
         {
             steps
