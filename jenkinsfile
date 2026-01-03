@@ -32,7 +32,7 @@ pipeline
             steps {
                 script {
                     echo "Deploying to STAGING environment"
-                    cicd.deployTomcat("sharedlibrary1", "172.31.55.22", "stageapp")
+                    cicd.deployTomcat("sharedlibrary1", "172.31.77.87", "stageapp")
                 }
             }
         }
