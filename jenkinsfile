@@ -1,77 +1,60 @@
-@Library('mylibrary') _
+@Library('mylibrary')_
 
-pipeline {
-    agent none
-
-    triggers {
-        githubPush()
-    }
-
-    stages {
-
-        stage('Checkout') {
-            agent { label 'myslave' }
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Build & Unit Test') {
-            agent { label 'myslave' }
-            steps {
-                buildApp()
-            }
-        }
-
-        stage('Parallel QA Activities') {
-            parallel {
-
-                stage('Deploy to QA') {
-                    agent { label 'myslave' }
-                    steps {
-                        deployTomcat(
-                            'webapp/target/webapp.war',
-                            '/home/ubuntu/cicd.pem',
-                            '172.31.77.87'
-                        )
-                    }
-                }
-
-                stage('Run Selenium Tests') {
-                    agent { label 'myslave' }
-                    steps {
-                        git url: 'https://github.com/Riya-Pandey16/FunctionalTesting.git'
-                        runSelenium()
-                    }
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('Download_master')
+        {
+            steps
+            {
+                script
+                {
+                  cicd.gitDownload("maven2")
                 }
             }
         }
-
-        stage('Manual Approval') {
-            agent any
-            steps {
-                input message: "Deploy to Production?"
+        stage('Build_master')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.buildArtifacts()
+                }
             }
         }
-
-        stage('Deploy to Prod') {
-            agent { label 'myslave' }
-            steps {
-                deployTomcat(
-                    'webapp/target/webapp.war',
-                    '/home/ubuntu/cicd.pem',
-                    '172.31.71.63'
-                )
+        stage('Deployment_master')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.deployTomcat("sharedlibrary1","172.31.77.87","testapp")
+                }
             }
         }
-    }
-
-    post {
-        success {
-            sendMail("SUCCESS")
+        stage('Testing_master')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.gitDownload("FunctionalTesting")
+                    cicd.executeSelenium("sharedlibrary1")
+                }
+            }
         }
-        failure {
-            sendMail("FAILED")
+        stage('Delivery_master')
+        {
+            steps
+            {
+                script
+                {
+                    cicd.deployTomcat("sharedlibrary1","172.31.71.63","prodapp")
+                }
+            }
         }
     }
 }
